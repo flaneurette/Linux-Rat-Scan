@@ -35,5 +35,5 @@ Be mindful that Clamav takes a while to scan and can take up lots of server reso
 
 **Reports**
 
-Reports are stored in:/var/security/ for each scanner.
+Reports are stored in: ```/var/reports/security``` for each scanner.
 
