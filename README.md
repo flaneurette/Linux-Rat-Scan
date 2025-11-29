@@ -31,8 +31,9 @@ Paste the .sh script
 **Run rat scan**
 ```./rat_scan.sh```
 
-Be mindful that Clamav takes a while to scan and can take up loys of server resources to do so. Clamav only runs at the end!
+Be mindful that Clamav takes a while to scan and can take up lots of server resources to do so. Clamav only runs at the end!
 
 **Reports**
+
 Reports are stored in:/var/security/ for each scanner.
 
