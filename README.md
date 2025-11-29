@@ -26,6 +26,8 @@ Paste the .sh script
 
 ```Ctrl+Z```
 
+```chmod u+x rat_scan.sh```
+
 **Run rat scan**
 ```./rat_scan.sh```
 
