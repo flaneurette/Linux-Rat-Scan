@@ -1,6 +1,6 @@
 # Linux-Rat-Scan
 
-A rat scanner, search for malware, rootkits and viruses on a linux server
+A rat scanner, search for trojans, malware, rootkits and viruses on a linux server
 
 It installs scanners, and scans the server for linux rats.
 
