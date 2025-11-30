@@ -24,7 +24,9 @@ Paste the .sh script
 
 ```Ctrl+O```
 
-```Ctrl+Z```
+```enter```
+
+```Ctrl+X```
 
 ```chmod u+x rat_scan.sh```
 
