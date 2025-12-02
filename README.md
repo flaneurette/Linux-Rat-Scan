@@ -10,6 +10,7 @@ It installs scanners, and scans the server for linux rats.
 - rkhunter
 - chkrootkit
 - lynis
+- maldet
 
 **Installation**
 In linux terminal: 
