@@ -42,7 +42,6 @@ echo "Maldet scan started... this may take a while, please wait."
 sudo maldet -u
 sudo maldet -d
 
-# Run Maldet scan in background with progress dots
 sudo maldet -a / > "$REPORT_DIR/maldet.log" 2>&1 &
 SCAN_PID=$!
 
@@ -51,27 +50,36 @@ while kill -0 $SCAN_PID 2>/dev/null; do
   sleep 5
 done
 echo -e "\nMaldet scan finished!"
-grep -iE "$BAD_PATTERNS" "$REPORT_DIR/maldet.log" > "$REPORT_DIR/maldet_bad.log" || echo "No suspicious results" > "$REPORT_DIR/maldet_bad.log"
-
+grep -iE "$BAD_PATTERNS" "$REPORT_DIR/maldet.log" > "$REPORT_DIR/maldet_bad.log" || \
+    echo "No suspicious results" > "$REPORT_DIR/maldet_bad.log"
 
 # --- Rootkit Hunter ---
 log "Running RKHunter"
 echo "RKHunter scan started... this may take a while, please wait."
 sudo rkhunter --update --skip-keypress --quiet 2>/dev/null
 sudo rkhunter --propupd --skip-keypress --quiet 2>/dev/null
-sudo rkhunter --checkall --skip-keypress --quiet > "$REPORT_DIR/rkhunter.log" 2>&1
+
+sudo rkhunter --checkall --skip-keypress --quiet > "$REPORT_DIR/rkhunter.log" 2>&1 &
+RKH_PID=$!
+while kill -0 $RKH_PID 2>/dev/null; do
+  echo -n "."
+  sleep 5
+done
+echo -e "\nRKHunter scan finished!"
 grep -iE "Warning|Found" "$REPORT_DIR/rkhunter.log" > "$REPORT_DIR/rkhunter_bad.log" || \
     echo "No suspicious results" > "$REPORT_DIR/rkhunter_bad.log"
 
 # --- chkrootkit ---
 log "Running chkrootkit"
 run_cmd sudo chkrootkit > "$REPORT_DIR/chkrootkit.log"
-grep -iE "INFECTED|Vulnerable|FOUND|rootkit" "$REPORT_DIR/chkrootkit.log" > "$REPORT_DIR/chkrootkit_bad.log" || echo "No suspicious results" > "$REPORT_DIR/chkrootkit_bad.log"
+grep -iE "INFECTED|Vulnerable|FOUND|rootkit" "$REPORT_DIR/chkrootkit.log" > "$REPORT_DIR/chkrootkit_bad.log" || \
+    echo "No suspicious results" > "$REPORT_DIR/chkrootkit_bad.log"
 
 # --- Lynis ---
 log "Running Lynis"
 run_cmd sudo lynis audit system --quiet --log-file "$REPORT_DIR/lynis.log"
-grep -iE "warning|suggestion|fail" "$REPORT_DIR/lynis.log" > "$REPORT_DIR/lynis_bad.log" || echo "No warnings in Lynis" > "$REPORT_DIR/lynis_bad.log"
+grep -iE "warning|suggestion|fail" "$REPORT_DIR/lynis.log" > "$REPORT_DIR/lynis_bad.log" || \
+    echo "No warnings in Lynis" > "$REPORT_DIR/lynis_bad.log"
 
 # --- ClamAV ---
 log "Running ClamAV"
@@ -84,4 +92,5 @@ cat "$REPORT_DIR/clamav.log" | filter_bad > "$REPORT_DIR/clamav_bad.log"
 log "All scans complete!"
 echo "Reports saved to: $REPORT_DIR"
 echo -e "\nSummary of detected issues:"
-grep -H . "$REPORT_DIR"/*_bad.log | grep -v "No suspicious" || echo "No suspicious or infected files detected."
+grep -H . "$REPORT_DIR"/*_bad.log | grep -v "No suspicious" || \
+    echo "No suspicious or infected files detected."
