@@ -38,12 +38,11 @@ if ! command -v maldet >/dev/null 2>&1; then
 fi
 
 log "Running Maldet"
-
-sudo maldet -u      # update signatures
-sudo maldet -d      # update program
-
 echo "Maldet scan started... this may take a while, please wait."
-# Run the scan in background and show progress dots
+sudo maldet -u
+sudo maldet -d
+
+# Run Maldet scan in background with progress dots
 sudo maldet -a / > "$REPORT_DIR/maldet.log" 2>&1 &
 SCAN_PID=$!
 
@@ -56,30 +55,29 @@ grep -iE "$BAD_PATTERNS" "$REPORT_DIR/maldet.log" > "$REPORT_DIR/maldet_bad.log"
 
 
 # --- Rootkit Hunter ---
-log "Running rkhunter"
+log "Running RKHunter"
 echo "RKHunter scan started... this may take a while, please wait."
-run_cmd sudo rkhunter --update
-run_cmd sudo rkhunter --propupd
-run_cmd sudo rkhunter --checkall --skip-keypress > "$REPORT_DIR/rkhunter.log"
-grep -iE "Warning|Found" "$REPORT_DIR/rkhunter.log" > "$REPORT_DIR/rkhunter_bad.log" || echo "No suspicious results" > "$REPORT_DIR/rkhunter_bad.log"
+sudo rkhunter --update --skip-keypress --quiet 2>/dev/null
+sudo rkhunter --propupd --skip-keypress --quiet 2>/dev/null
+sudo rkhunter --checkall --skip-keypress --quiet > "$REPORT_DIR/rkhunter.log" 2>&1
+grep -iE "Warning|Found" "$REPORT_DIR/rkhunter.log" > "$REPORT_DIR/rkhunter_bad.log" || \
+    echo "No suspicious results" > "$REPORT_DIR/rkhunter_bad.log"
 
 # --- chkrootkit ---
 log "Running chkrootkit"
-echo "Chkrootkit scan started... this may take a while, please wait."
 run_cmd sudo chkrootkit > "$REPORT_DIR/chkrootkit.log"
 grep -iE "INFECTED|Vulnerable|FOUND|rootkit" "$REPORT_DIR/chkrootkit.log" > "$REPORT_DIR/chkrootkit_bad.log" || echo "No suspicious results" > "$REPORT_DIR/chkrootkit_bad.log"
 
 # --- Lynis ---
 log "Running Lynis"
-echo "Lynis scan started... this may take a while, please wait."
 run_cmd sudo lynis audit system --quiet --log-file "$REPORT_DIR/lynis.log"
 grep -iE "warning|suggestion|fail" "$REPORT_DIR/lynis.log" > "$REPORT_DIR/lynis_bad.log" || echo "No warnings in Lynis" > "$REPORT_DIR/lynis_bad.log"
 
 # --- ClamAV ---
 log "Running ClamAV"
-echo "ClamAV scan started... this may take a while, please wait."
 run_cmd sudo freshclam > /dev/null 2>&1 || true
-run_cmd sudo nice -n 10 clamscan -r / --infected --no-summary --exclude-dir="^/proc|^/sys|^/dev|^/run|^/var/log|^/tmp|^/mnt|^/media" > "$REPORT_DIR/clamav.log"
+run_cmd sudo nice -n 10 clamscan -r / --infected --no-summary \
+  --exclude-dir="^/proc|^/sys|^/dev|^/run|^/var/log|^/tmp|^/mnt|^/media" > "$REPORT_DIR/clamav.log"
 cat "$REPORT_DIR/clamav.log" | filter_bad > "$REPORT_DIR/clamav_bad.log"
 
 # --- Summary ---
